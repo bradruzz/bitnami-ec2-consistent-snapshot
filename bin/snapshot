@@ -1,0 +1,24 @@
+#!/bin/sh
+#
+# snapshot
+#
+
+# settings - change these
+AWS_KEY="your-key"
+AWS_SECRET="your-secret"
+EBS_VOLUME="your-ebs-volume"
+REGION="your-region"
+
+# take the snapshot
+/usr/bin/ec2-consistent-snapshot\
+  --aws-access-key-id "$AWS_KEY"\
+  --aws-secret-access-key "$AWS_SECRET"\
+  --region "$REGION"\
+  --mysql\
+  --mysql-socket="/opt/bitnami/mysql/tmp/mysql.sock"\
+  --mysql-username="root"\
+  --mysql-password="bitnami"\
+  --description "bitnami snapshot: $(date +%c)" "$EBS_VOLUME"
+
+# add this option on xfs filesystems
+  #--freeze-filesystem /\
