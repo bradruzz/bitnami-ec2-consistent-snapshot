@@ -8,7 +8,8 @@ Regularly back up an entire system.
 [ec2-consistent-snapshot](https://github.com/alestic/ec2-consistent-snapshot) & cron.
 
 ## Install
-`vpkg install snapshot --recipe-url "https://raw.github.com/jessetane/ubuntu-ec2-consistent-snapshot/master/.vpkg"`
+`vpkg install snapshot\  
+	--recipe-url "https://raw.github.com/jessetane/bitnami-ec2-consistent-snapshot/master/.vpkg"`
 
 ## License
 [WTFPL](http://www.wtfpl.net/txt/copying/)
