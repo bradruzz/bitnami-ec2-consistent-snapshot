@@ -1,41 +1,43 @@
+#!/usr/bin/env bash
 #
 # .vpkg
 #
 
 url() {
-  #echo "https://github.com/jessetane/ubuntu-ec2-consistent-snapshot"
-  echo "file:///Users/jessetane/Dropbox/software/src/ubuntu-ec2-consistent-snapshot"
+  echo "https://github.com/jessetane/bitnami-ec2-consistent-snapshot"
 }
 
 version() {
   echo "stable"
 }
 
-build() {
-  
-  # files
-  template="$lib"/"$build"/src/snapshot_template
-  generated="$lib"/"$build"/bin/snapshot
-  
-  # get vars from stdin, even when piped to
+configure() {
   {
+    echo "---- AWS account configuration ----"
     read -a AWS_KEY -p "enter your Access Key ID: "
     read -a AWS_SECRET -p "enter your Secret Access Key: "
     read -a EBS_VOLUME -p "enter the EBS Volume to snapshot: "
     read -a REGION -p "enter an AWS Region: "
   }
+}
+
+render() {
   
-  # generated script from the template
+  # files
   mkdir -p "$lib"/"$build"/bin
-  head -n 5 "$template" > "$generated"
-  echo "AWS_KEY=\"$AWS_KEY\"" >> "$generated"
-  echo "AWS_SECRET=\"$AWS_SECRET\"" >> "$generated"
-  echo "EBS_VOLUME=\"$EBS_VOLUME\"" >> "$generated"
-  echo "REGION=\"$REGION\"" >> "$generated"
-  tail -n +11 "$template" >> "$generated"
+  template="$lib"/"$build"/src/snapshot_template
+  rendered="$lib"/"$build"/bin/snapshot
+  
+  # render script from template
+  head -n 5 "$template" > "$rendered"
+  echo "AWS_KEY=\"$AWS_KEY\"" >> "$rendered"
+  echo "AWS_SECRET=\"$AWS_SECRET\"" >> "$rendered"
+  echo "EBS_VOLUME=\"$EBS_VOLUME\"" >> "$rendered"
+  echo "REGION=\"$REGION\"" >> "$rendered"
+  tail -n +11 "$template" >> "$rendered"
   
   # make the script executable
-  chmod +x "$generated"
+  chmod +x "$rendered"
 }
 
 install() {
@@ -53,8 +55,11 @@ install() {
   cp -R "$src"/.git ./
   git reset --hard "$version"
   
+  # ask about AWS account infos
+  configure
+  
   # build executable from template
-  build
+  render
   
   # dpkg deps
   if ! dpkg -L ec2-consistent-snapshot
@@ -64,15 +69,23 @@ install() {
     sudo apt-get install ec2-consistent-snapshot -y
   fi
   
-  # cron
-  #sudo ln -sf "$lib"/"$build"/bin/snapshot /etc/cron.daily/snapshot-"$build"
+  # do this weekly via cron
+  sudo ln -sf "$lib"/"$build"/bin/snapshot /etc/cron.weekly/snapshot-"$build"
+  
+  # 
+  notes
 }
 
-# uninstall() {
-#   
-#   # cron
-#   sudo rm -rf /etc/cron.daily/snapshot-"$build"
-# }
+uninstall() {
+  
+  # remove from cron.weekly
+  sudo rm -rf /etc/cron.weekly/snapshot-"$build"
+}
+
+notes() {
+  echo "---- notes ----"
+  echo "you can edit your configuration here: $lib/$build/bin/snapshot"
+}
 
 # stay safe
 set -e
