@@ -3,7 +3,8 @@
 #
 
 url() {
-  echo "https://github.com/jessetane/ubuntu-ec2-consistent-snapshot"
+  #echo "https://github.com/jessetane/ubuntu-ec2-consistent-snapshot"
+  echo "file:///Users/jessetane/Dropbox/software/src/ubuntu-ec2-consistent-snapshot"
 }
 
 version() {
