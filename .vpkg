@@ -15,7 +15,7 @@ build() {
   
   # files
   template="$lib"/"$build"/src/snapshot_template
-  output="$lib"/"$build"/bin/snapshot
+  generated="$lib"/"$build"/bin/snapshot
   
   # get vars from stdin, even when piped to
   {
@@ -25,29 +25,21 @@ build() {
     read -a REGION -p "enter an AWS Region: "
   }
   
-  # generate script from the template
+  # generated script from the template
   mkdir -p "$lib"/"$build"/bin
-  head -n 5 "$template" > "$output"
-  echo "AWS_KEY=\"$AWS_KEY\"" >> "$output"
-  echo "AWS_SECRET=\"$AWS_SECRET\"" >> "$output"
-  echo "EBS_VOLUME=\"$EBS_VOLUME\"" >> "$output"
-  echo "REGION=\"$REGION\"" >> "$output"
-  tail -n +11 "$template" >> "$output"
+  head -n 5 "$template" > "$generated"
+  echo "AWS_KEY=\"$AWS_KEY\"" >> "$generated"
+  echo "AWS_SECRET=\"$AWS_SECRET\"" >> "$generated"
+  echo "EBS_VOLUME=\"$EBS_VOLUME\"" >> "$generated"
+  echo "REGION=\"$REGION\"" >> "$generated"
+  tail -n +11 "$template" >> "$generated"
   
   # make the script executable
-  chmod +x "$outfile"
+  chmod +x "$generated"
 }
 
-install()
+install() {
   mkdir -p "$src" && cd $_
-  
-  # dpkg deps
-  if ! dpkg -L ec2-consistent-snapshot
-  then
-    sudo add-apt-repository ppa:alestic -y
-    sudo apt-get update -y
-    sudo apt-get install ec2-consistent-snapshot -y
-  fi
   
   # get repo
   [ ! -d .git ] && git clone "$(url)" ./
@@ -61,8 +53,16 @@ install()
   cp -R "$src"/.git ./
   git reset --hard "$version"
   
-  # build
+  # build executable from template
   build
+  
+  # dpkg deps
+  if ! dpkg -L ec2-consistent-snapshot
+  then
+    sudo add-apt-repository ppa:alestic -y
+    sudo apt-get update -y
+    sudo apt-get install ec2-consistent-snapshot -y
+  fi
   
   # cron
   #sudo ln -sf "$lib"/"$build"/bin/snapshot /etc/cron.daily/snapshot-"$build"
@@ -73,3 +73,9 @@ install()
 #   # cron
 #   sudo rm -rf /etc/cron.daily/snapshot-"$build"
 # }
+
+# stay safe
+set -e
+
+# run
+"$1"
