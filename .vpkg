@@ -10,6 +10,33 @@ version() {
   echo "stable"
 }
 
+build() {
+  
+  # files
+  template="$lib"/"$build"/src/snapshot_template
+  output="$lib"/"$build"/bin/snapshot
+  
+  # get vars from stdin, even when piped to
+  {
+    read -a AWS_KEY -p "enter your Access Key ID: "
+    read -a AWS_SECRET -p "enter your Secret Access Key: "
+    read -a EBS_VOLUME -p "enter the EBS Volume to snapshot: "
+    read -a REGION -p "enter an AWS Region: "
+  }
+  
+  # generate script from the template
+  mkdir -p "$lib"/"$build"/bin
+  head -n 5 "$template" > "$output"
+  echo "AWS_KEY=\"$AWS_KEY\"" >> "$output"
+  echo "AWS_SECRET=\"$AWS_SECRET\"" >> "$output"
+  echo "EBS_VOLUME=\"$EBS_VOLUME\"" >> "$output"
+  echo "REGION=\"$REGION\"" >> "$output"
+  tail -n +11 "$template" >> "$output"
+  
+  # make the script executable
+  chmod +x "$outfile"
+}
+
 install()
   mkdir -p "$src" && cd $_
   
@@ -33,12 +60,15 @@ install()
   cp -R "$src"/.git ./
   git reset --hard "$version"
   
-  # cron
-  sudo ln -sf "$lib"/"$build"/bin/snapshot /etc/cron.daily/snapshot-"$build"
-}
-
-uninstall() {
+  # build
+  build
   
   # cron
-  sudo rm -rf /etc/cron.daily/snapshot-"$build"
+  #sudo ln -sf "$lib"/"$build"/bin/snapshot /etc/cron.daily/snapshot-"$build"
 }
+
+# uninstall() {
+#   
+#   # cron
+#   sudo rm -rf /etc/cron.daily/snapshot-"$build"
+# }
