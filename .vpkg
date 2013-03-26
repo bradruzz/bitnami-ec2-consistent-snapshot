@@ -41,7 +41,8 @@ render() {
 }
 
 install() {
-  mkdir -p "$src" && cd $_
+  mkdir -p "$src"
+  cd "$src"
   
   # get repo
   [ ! -d .git ] && git clone "$(url)" ./
@@ -51,7 +52,8 @@ install() {
   git fetch --tags
   
   # install
-  mkdir -p "$lib"/"$build" && cd $_
+  mkdir -p "$lib"/"$build"
+  cd "$lib"/"$build"
   cp -R "$src"/.git ./
   git reset --hard "$version"
   
